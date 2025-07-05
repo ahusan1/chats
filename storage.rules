@@ -1,0 +1,20 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Files in conversations - only authenticated users can upload/download
+    match /files/{conversationId}/{fileName} {
+      allow read, write: if request.auth != null;
+      allow write: if request.auth != null && 
+        request.resource.size < 50 * 1024 * 1024; // 50MB limit
+    }
+    
+    // User avatars
+    match /avatars/{userId}/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        request.auth.uid == userId &&
+        request.resource.size < 5 * 1024 * 1024; // 5MB limit for avatars
+    }
+  }
+}
+
